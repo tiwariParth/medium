@@ -33,7 +33,25 @@ app.post("/api/v1/signup", async (c) => {
   }
 });
 
-app.post("/api/v1/signin", (c) => {
+app.post("/api/v1/signin", async (c) => {
+  const prisma = new PrismaClient({
+    datasourceUrl: c.env?.DATABASE_URL,
+  }).$extends(withAccelerate());
+
+  const body = await c.req.json();
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        email: body.email,
+      },
+    });
+    if (!user) {
+      return c.status(403);
+    }
+  } catch (e) {
+    return c.status(403);
+  }
+
   return c.json({ message: "Signup" });
 });
 
